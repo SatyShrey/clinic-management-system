@@ -60,7 +60,20 @@ app.post('/token', (req, res) => {
 app.put('/check-done', (req, res) => {
     mongoClient.connect(conStr).then(clientObject => {
         const db = clientObject.db('clinic');
-        db.collection('tokens').updateOne({id:req.body.id},{$set:{status:"completed",fees:req.body.fees}}).then(()=>{
+        db.collection('tokens').updateOne({id:req.body.id},{$set:{status:"check-up done",fees:req.body.fees}}).then(()=>{
+            db.collection('tokens').find({}).toArray().then(data => {
+                res.send(data);
+                res.end();
+            })
+        })
+    })
+})
+
+//check-done
+app.put('/payment-done', (req, res) => {
+    mongoClient.connect(conStr).then(clientObject => {
+        const db = clientObject.db('clinic');
+        db.collection('tokens').updateOne({id:req.body.id},{$set:{status:"completed"}}).then(()=>{
             db.collection('tokens').find({}).toArray().then(data => {
                 res.send(data);
                 res.end();
@@ -92,6 +105,14 @@ app.post('/signup', (req, res) => {
 //............styles(index.css).....................
 app.get('/css', (req, res) => {
     res.sendFile('index.css', { root: path.join(__dirname) }, (err) => {
+        if (err) { console.error('Error:', err); res.end() }
+    })
+});
+
+
+//............favicon.....................
+app.get('/favicon', (req, res) => {
+    res.sendFile('favicon.png', { root: path.join(__dirname) }, (err) => {
         if (err) { console.error('Error:', err); res.end() }
     })
 });

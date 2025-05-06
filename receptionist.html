@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Clinic management</title>
+    <link rel="shortcut icon" href="/favicon" type="image/png">
     <link rel="stylesheet" href="/css">
     <style>
         nav {
@@ -84,11 +85,10 @@
         li {
             width: 400px;
             max-width: calc( 100% - 13px);
-            background-color: black;
-            color: white;
             margin: 3px;
             padding: 5px 3px;
             cursor: pointer;
+            border-radius: 3px;
         }
         #preview{
             position: absolute;
@@ -108,16 +108,28 @@
             margin-top: 0px;
             animation: slide-bottom .3s;
             transition: .3s;
-            button{
-                width: 100%;
-                margin-top: 5px;
+            
+            .btnDiv {
+                text-align: center;
+            }
+
+            button {
+                margin: 3px;
                 border: none;
-                background-color:  black;
                 border-radius: 3px;
                 color: white;
                 cursor: pointer;
-                padding:7px;
+                padding: 7px;
             }
+
+            .ok {
+                background-color: black;
+            }
+
+            .done {
+                background-color: green;
+            }
+
             p{
                 margin: 4px 0;
                 font-size: large;
@@ -170,6 +182,14 @@
                 location.reload();
             }
         })
+        //update
+        function update(id) {
+                axios.put('/payment-done', { id: id}).then(data => {
+                    preview.innerHTML = ''
+                    createLi(data.data);
+                }).catch(e => alert(e.message));
+        }
+        //preview
         function previewDiv(a) {
             const preview = document.getElementById('preview');
             preview.innerHTML = `<div class="container">
@@ -178,10 +198,16 @@
                 <p class="gender">Gender: ${a.gender}</p>
                 <p class="status">Status: ${a.status}</p>
                 <p class="fees"></p>
-                <button onclick="cancel()">Ok</button>
+                <div class="btnDiv">
+                    <button class="ok" onclick="cancel()">Ok</button>
+                    <span class="btnSpan"></span>
+                </div>
             </div>`;
             if(a.fees){
                 document.querySelector('.fees').innerHTML=`Fees: ${a.fees}`;
+                if(a.status=="check-up done"){
+                    document.querySelector('.btnSpan').innerHTML = `<button onclick='update("${a.id}")' class="done">Payment done</button>`;
+                }
             }
         }
         //create li element
@@ -194,6 +220,17 @@
                 const p = document.createElement('p');
                 li.appendChild(p);
                 p.innerText = `${b + 1}. ${a.name} (${a.status})`;
+                if(a.status=='pending'){
+                    li.style.backgroundColor='black';
+                    li.style.color='white';
+                }
+                else if(a.status=='check-up done'){
+                    li.style.backgroundColor='orange';
+                }
+                else if(a.status=='completed'){
+                    li.style.backgroundColor='green';
+                    li.style.color='white';
+                }
                 ol.appendChild(li);
                 li.addEventListener('click',()=>{
                     previewDiv(a);
