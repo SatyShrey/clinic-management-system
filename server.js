@@ -60,7 +60,6 @@ app.post('/token', (req, res) => {
 app.put('/check-done', (req, res) => {
     mongoClient.connect(conStr).then(clientObject => {
         const db = clientObject.db('clinic');
-        console.log(req.body)
         db.collection('tokens').updateOne({id:req.body.id},{$set:{status:"completed",fees:req.body.fees}}).then(()=>{
             db.collection('tokens').find({}).toArray().then(data => {
                 res.send(data);
