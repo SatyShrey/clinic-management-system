@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clinic management</title>
+    <link rel="stylesheet" href="/css">
+    <style>
+        nav {
+            height: 40px;
+            display: flex;
+            align-items: center;
+            background-color: grey;
+
+            #rName {
+                margin-left: 3px;
+                color: white;
+            }
+
+            #rLogout {
+                background-color: black;
+                border: none;
+                color: white;
+                padding: 5px;
+                border-radius: 3px;
+                cursor: pointer;
+                margin-right: 3px;
+            }
+        }
+
+        h3 {
+            text-align: center;
+            margin: 4px 0;
+        }
+
+        h4 {
+            margin: 4px;
+        }
+
+        #dataForm {
+            display:flex;
+            width: fit-content;
+            margin: auto;
+            flex-direction: column;
+
+            input {
+                padding: 4px;
+                border-radius: 4px;
+                margin: 2px 0;
+                width: 250px;
+                max-width: 100%;
+                font-size: large;
+                border: none;
+                outline: none;
+                box-shadow: 0 0 1px black;
+            }
+
+            input:focus {
+                outline: 2px solid grey;
+            }
+
+            button {
+                font-size: large;
+                padding: 4px;
+                margin: 2px 0;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                background-color: rgb(249, 152, 5);
+            }
+
+            select {
+                font-size: large;
+                padding: 4px;
+                margin: 2px 0;
+                border: none;
+                border-radius: 4px;
+                outline: none;
+                box-shadow: 0 0 1px;
+            }
+        }
+
+        li {
+            width: 400px;
+            max-width: calc( 100% - 13px);
+            background-color: black;
+            color: white;
+            margin: 3px;
+            padding: 5px 3px;
+            cursor: pointer;
+        }
+        #preview{
+            position: absolute;
+            top: 90px;
+            left: 0;
+            width: 100%;
+            overflow: hidden;
+        }
+        .container{
+            margin:4px auto;
+            width: fit-content;
+            background-color: white;
+            padding: 0 3px 3px 3px;
+            max-width: 100%;
+            border-radius: 3px;
+            box-shadow: 0 0 2px;
+            margin-top: 0px;
+            animation: slide-bottom .3s;
+            transition: .3s;
+            button{
+                width: 100%;
+                margin-top: 5px;
+                border: none;
+                background-color:  black;
+                border-radius: 3px;
+                color: white;
+                cursor: pointer;
+                padding:7px;
+            }
+            p{
+                margin: 4px 0;
+                font-size: large;
+            }
+        }
+        @keyframes slide-bottom {
+            0%{margin-top: -100px;}
+            100%{margin-top: 0px;}
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>cliniCure.</h1>
+    </header>
+
+    <section class="recepTab">
+        <nav><b id="rName"></b>&nbsp;<button id="rLogout">Logout</button></nav>
+        <h3>Fill patient's details</h3>
+        <form id="dataForm">
+            <input required pattern="[a-zA-Z ]{2,}" placeholder="Name" id="pName" type="text">
+            <input required pattern="[0-9]{1,2}" placeholder='Age between 0 to 99' id="pAge" type="text">
+            <select required id="gender">
+                <option value="none">Select</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+            </select>
+            <button type="submit" id="btnGen">Add appointment</button>
+            <div id="alert"></div>
+        </form>
+        <div id="preview">
+
+        </div>
+        <h4>Appointments</h4>
+        <ol reversed id="ol"></ol>
+    </section>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.9.0/axios.min.js"></script>
+    <script>
+        const user = JSON.parse(localStorage.getItem('user'));
+        const rName = document.getElementById('rName');
+        const dLogout = document.getElementById('rLogout');
+        const dataForm = document.getElementById('dataForm');
+        rLogout.addEventListener('click', () => {
+            var isLogout = confirm('Are you sure to logout');
+            if (isLogout) {
+                localStorage.clear();
+                location.reload();
+            }
+        })
+        function previewDiv(a) {
+            const preview = document.getElementById('preview');
+            preview.innerHTML = `<div class="container">
+                <h3>${a.name}</h3>
+                <p class="age">Age: ${a.age}</p>
+                <p class="gender">Gender: ${a.gender}</p>
+                <p class="status">Status: ${a.status}</p>
+                <p class="fees"></p>
+                <button onclick="cancel()">Ok</button>
+            </div>`;
+            if(a.fees){
+                document.querySelector('.fees').innerHTML=`Fees: ${a.fees}`;
+            }
+        }
+        //create li element
+        function createLi(array) {
+            const ol = document.getElementById('ol');
+            ol.innerHTML = '';
+            array.map((a, b) => {
+                const li = document.createElement('li');
+                const button = document.createElement('button');
+                const p = document.createElement('p');
+                li.appendChild(p);
+                p.innerText = `${b + 1}. ${a.name} (${a.status})`;
+                ol.appendChild(li);
+                li.addEventListener('click',()=>{
+                    previewDiv(a);
+                })
+            })
+        }
+        //hide the container
+        function cancel(){
+            const preview = document.getElementById('preview');
+            const container=document.querySelector('.container');
+            container.style.marginTop='-200px';
+            setTimeout(()=>{preview.innerHTML =''},310)
+        }
+        if (user && (user.des == 'receptionist')) {
+            rName.innerText = user.name;
+            axios.get('/tokens').then(data => {
+                if (data.data) {
+                    createLi(data.data)
+                }
+            }).catch(e => alert(e.message))
+        }
+        else (location.replace('/'));
+
+        dataForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('pName').value;
+            const age = document.getElementById('pAge').value;
+            const gender = document.getElementById('gender').value;
+            if (gender == 'none') {
+                alert('Please select gender');
+            }
+            else {
+                var token = {
+                    name: name,
+                    age: age,
+                    gender: gender,
+                    fees: '',
+                    status: 'pending',
+                    id: "CC" + Date.now()
+                }
+                axios.post('/token', token).then((data) => {
+                    if (data.data) {
+                        e.target.reset()
+                        createLi(data.data);
+                    }
+                }).catch(e => alert(e.message));
+            }
+        })
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clinic management</title>
+    <link rel="stylesheet" href="/css">
+    <style>
+        form {
+            display: flex;
+            flex-direction: column;
+            width: fit-content;
+            margin: auto;
+            padding: 0 7px 7px 7px;
+            box-shadow: 0 0 2px;
+            border-radius: 4px;
+            background-color: white;
+
+            h2 {
+                margin-bottom: 3px;
+            }
+
+            input {
+                padding: 4px;
+                border-radius: 4px;
+                margin: 2px 0;
+                width: 250px;
+                max-width: 100%;
+                font-size: large;
+                border: none;
+                outline: none;
+                box-shadow: 0 0 1px black;
+            }
+
+            input:focus {
+                outline: 2px solid grey;
+            }
+
+            button {
+                font-size: large;
+                padding: 4px;
+                margin: 2px 0;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                background-color: rgb(249, 152, 5);
+            }
+
+            select {
+                font-size: large;
+                padding: 4px;
+                margin: 2px 0;
+                border: none;
+                border-radius: 4px;
+                outline: none;
+                box-shadow: 0 0 1px;
+            }
+
+            a {
+                color: blue;
+                text-align: center;
+                margin-top: 3px;
+                cursor: pointer;
+            }
+        }
+
+        #alert {
+            text-align: center;
+            margin-top: 3px;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>cliniCure.</h1>
+    </header>
+
+    <main>
+        <form id='signupForm'>
+            <h2>Signup</h2>
+            <input type="text" placeholder="Name" id="name" required pattern="[a-zA-Z ]{2,}">
+            <input required id='email' placeholder="Email" type='email'>
+            <input required id='password' placeholder='Password' type='password' pattern="[a-zA-Z0-9*#@.&%$]{6,}">
+            <input required id='confirm-password' placeholder="Confirm password" type='password'>
+            <select id="des">
+                <option value="none">Select</option>
+                <option value="doctor">Doctor</option>
+                <option value="receptionist">Receptionist</option>
+            </select>
+            <button type="submit" class="btnSignup">Signup</button>
+            <a href="/">Existing user? go to login</a>
+        </form>
+        <div id="alert"></div>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.9.0/axios.min.js"></script>
+    <script>
+        const form = document.getElementById('signupForm');
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value.toLowerCase();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            const des = document.getElementById('des').value;
+            if (password !== confirmPassword) {
+                alert('Please confirm password');
+            }
+            else if(des=='none'){
+                alert('Please select degignation');
+            }
+            else {
+                axios.post('/signup',{name:name,email:email,password:password,des:des}).then(data=>{
+                    alert(data.data);
+                    e.target.reset();
+                }).catch(e=>alert(e.message))
+            }
+        })
+    </script>
+
+</body>
+
+</html>
+<!--Thank You-->

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clinic management</title>
+  <link rel="stylesheet" href="/css">
+  <style>
+    form {
+      display: flex;
+      flex-direction: column;
+      width: fit-content;
+      margin: auto;
+      padding: 0 7px 7px 7px;
+      box-shadow: 0 0 2px;
+      border-radius: 4px;
+      background-color: white;
+
+      h2 {
+        margin-bottom: 3px;
+      }
+
+      input {
+        padding: 4px;
+        border-radius: 4px;
+        margin: 2px 0;
+        width: 250px;
+        max-width: 100%;
+        font-size: large;
+        border: none;
+        outline: none;
+        box-shadow: 0 0 1px black;
+      }
+
+      input:focus {
+        outline: 2px solid grey;
+      }
+
+      button {
+        font-size: large;
+        padding: 4px;
+        margin: 2px 0;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        background-color: rgb(0, 119, 255);
+      }
+
+      select {
+        font-size: large;
+        padding: 4px;
+        margin: 2px 0;
+        border: none;
+        border-radius: 4px;
+        outline: none;
+        box-shadow: 0 0 1px;
+      }
+
+      a {
+        color: blue;
+        text-align: center;
+        margin-top: 3px;
+        cursor: pointer;
+      }
+    }
+
+    #alert {
+      text-align: center;
+      margin-top: 3px;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>cliniCure.</h1>
+  </header>
+
+  <main>
+    <form id="loginForm">
+      <h2>Login</h2>
+      <input type="email" placeholder="Email" id="email" required>
+      <input type="password" placeholder="Password" id="password" required>
+      <button type="submit" class="btnLogin">Login</button>
+      <a href="/signup">Not an user? go to signup</a>
+    </form>
+    <div id="alert"></div>
+  </main>
+
+  <!-----script------->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.9.0/axios.min.js"></script>
+  <script>
+    const user = JSON.parse(localStorage.getItem('user'));
+    const form=document.getElementById('loginForm');
+    if (user) {
+      if (user.des == 'doctor') {
+        location.replace('/doctor')
+      }
+      else if (user.des == 'receptionist') {
+        location.replace('/receptionist')
+      }
+    }
+    form.addEventListener('submit',(e)=>{
+      e.preventDefault();
+      const email=document.getElementById('email').value.toLowerCase();
+      const password=document.getElementById('password').value;
+      axios.post('/login',{email:email,password:password}).then(data=>{
+        if(data.data){
+          localStorage.setItem('user',JSON.stringify(data.data))
+          alert('Login success');
+          location.reload();
+        }
+        else(alert('Error: Invalid credentials'))
+      }).catch(e=>alert(e.message))
+    })
+  </script>
+
+</body>
+
+</html>
+<!--Thank You-->
