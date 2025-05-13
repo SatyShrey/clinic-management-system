@@ -10,13 +10,6 @@ const mongoClient = require('mongodb').MongoClient;
 
 const path = require('path');
 
-//............default page (login page).....................
-app.get('/', (req, res) => {
-    res.sendFile('index.html', { root: path.join(__dirname) }, (err) => {
-        if (err) { console.error('Error:', err); res.end() }
-    })
-});
-
 //login
 app.post('/login', (req, res) => {
     const body = req.body;
@@ -102,41 +95,83 @@ app.post('/signup', (req, res) => {
     })
 })
 
-//............styles(index.css).....................
-app.get('/css', (req, res) => {
-    res.sendFile('index.css', { root: path.join(__dirname) }, (err) => {
-        if (err) { console.error('Error:', err); res.end() }
+//admin login
+app.post('/admin-login',(req,res)=>{
+    const body = req.body;
+    mongoClient.connect(conStr).then(clientObject => {
+        const db = clientObject.db('clinic');
+        db.collection('admin').findOne(body).then(data => {
+            res.send(data);
+            res.end();
+        })
     })
-});
+})
+//all users
+app.get('/users',(req,res)=>{
+    mongoClient.connect(conStr).then(clientObject => {
+        const db = clientObject.db('clinic');
+        db.collection('users').find({}).toArray().then(data => {
+            res.send(data);
+            res.end();
+        })
+    })
+})
+//delete user
+app.delete('/delete-user/:email',(req,res)=>{
+    mongoClient.connect(conStr).then(clientObject=>{
+        const db=clientObject.db('clinic');
+        db.collection('users').deleteOne({email:req.params.email}).then(()=>{
+            db.collection('users').find({}).toArray().then((users)=>{
+                res.send(users);res.end();
+            })
+        })
+    })
+})
 
+//delete completed appointments
+app.delete('/remove-completed',(req,res)=>{
+    mongoClient.connect(conStr).then(clientObject=>{
+        const db=clientObject.db('clinic');
+        db.collection('tokens').deleteMany({status:'completed'}).then(()=>{
+            db.collection('tokens').find({}).toArray().then((users)=>{
+                res.send(users);res.end();
+            })
+        })
+    })
+})
+
+//send files from server
+function sendResource(route,resource){
+    app.get(route, (req, res) => {
+        res.sendFile(resource, { root: path.join(__dirname) }, (err) => {
+            if (err) { console.error('Error:', err); res.end() }
+        })
+    });
+}
+//index.html
+sendResource('/','index.html');
+
+//............styles(index.css).....................
+sendResource('/css','index.css');
 
 //............favicon.....................
-app.get('/favicon', (req, res) => {
-    res.sendFile('favicon.png', { root: path.join(__dirname) }, (err) => {
-        if (err) { console.error('Error:', err); res.end() }
-    })
-});
+sendResource('/favicon','favicon.png');
 
 //............signup page.....................
-app.get('/signup', (req, res) => {
-    res.sendFile('signup.html', { root: path.join(__dirname) }, (err) => {
-        if (err) { console.error('Error:', err); res.end() }
-    })
-});
+sendResource('/signup','signup.html');
+
+
+//............admin page.....................
+sendResource('/admin','admin.html');
+
+//............admin-dashboard page.....................
+sendResource('/admin-dashboard','admin-dashboard.html');
 
 //............doctor page.....................
-app.get('/doctor', (req, res) => {
-    res.sendFile('doctor.html', { root: path.join(__dirname) }, (err) => {
-        if (err) { console.error('Error:', err); res.end() }
-    })
-});
+sendResource('/doctor','doctor.html');
 
 //............receptionist page.....................
-app.get('/receptionist', (req, res) => {
-    res.sendFile('receptionist.html', { root: path.join(__dirname) }, (err) => {
-        if (err) { console.error('Error:', err); res.end() }
-    })
-});
+sendResource('/receptionist','receptionist.html');
 
 
 app.listen(6060);

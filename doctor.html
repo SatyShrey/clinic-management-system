@@ -15,7 +15,7 @@
             background-color: grey;
 
             #dName {
-                margin-left: 3px;
+                margin: 3px;
                 color: white;
             }
 
@@ -26,19 +26,17 @@
                 padding: 5px;
                 border-radius: 3px;
                 cursor: pointer;
-                margin-right: 3px;
+                margin: 3px;
             }
         }
 
         h4 {
-            margin-left: 3px;
+            margin: 3px;
         }
 
         li {
             width: 400px;
             max-width: calc(100% - 13px);
-            background-color: black;
-            color: white;
             margin: 3px;
             padding: 5px 3px;
             cursor: pointer;
@@ -103,6 +101,7 @@
                 font-size: large;
             }
         }
+        h2{margin-left: 4px;color: white;text-shadow: 0 0 2px black;}
 
         @keyframes slide-bottom {
             0% {
@@ -120,7 +119,7 @@
     <header>
         <h1>cliniCure.</h1>
     </header>
-
+ <h2>Doctor section</h2>
     <section class="doctorTab">
         <nav class="unDiv"><b id="dName"></b>&nbsp;<button id="dLogout">Logout</button></nav>
         <br>
@@ -171,7 +170,7 @@
                 </div>
             </div>`;
 
-            if (a.fees == '') {
+            if (!(a.fees)) {
                 document.querySelector('.fees').innerHTML = `Fees:<input class="amount" placeholder="Enter amount">`;
                 document.querySelector('.btnSpan').innerHTML = `<button onclick='update("${a.id}")' class="done">Done</button>`;
             }
@@ -186,7 +185,17 @@
                 const button = document.createElement('button');
                 const p = document.createElement('p');
                 li.appendChild(p);
-                p.innerText = `${b + 1}. ${a.name} (${a.status})`;
+                p.innerText = `${b + 1}. ${a.name} (${a.status})`;if(a.status=='pending'){
+                    li.style.backgroundColor='black';
+                    li.style.color='white';
+                }
+                else if(a.status=='check-up done'){
+                    li.style.backgroundColor='orange';
+                }
+                else if(a.status=='completed'){
+                    li.style.backgroundColor='green';
+                    li.style.color='white';
+                }
                 ol.appendChild(li);
                 li.addEventListener('click', () => {
                     previewDiv(a);

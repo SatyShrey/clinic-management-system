@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="/favicon" type="image/png">
+    <title>Clinic management</title>
+    <link rel="stylesheet" href="/css">
+    <style>
+        h2 {
+            margin-left: 4px;
+            color: white;
+            text-shadow: 0 0 2px black;
+        }
+
+        nav {
+            display: flex;
+            gap: 10px;
+
+            #admin-name {
+                font-weight: bold;
+                margin: 4px;
+            }
+
+            button {
+                background-color: black;
+                border-radius: 4px;
+                padding: 4px;
+                color: white;
+                border: none;
+                cursor: pointer;
+                font-size: large;
+            }
+        }
+
+        .container {
+            h3 {
+                margin: 3px;
+            }
+
+            .users {
+                max-height: 70vh;
+                overflow-y: scroll;
+                scrollbar-width: none;
+            }
+
+            .users .user {
+                font-size: large;
+                display: flex;
+                justify-content: space-between;
+                width: 400px;
+                max-width: calc(100% - 10px);
+                margin: 5px;
+                padding: 7px 3px;
+                cursor: pointer;
+            }
+
+            .users .user .span2 {
+                padding: 2px;
+                border-radius: 4px;
+                box-shadow: 0 0 2px black;
+            }
+
+            .appointments {
+                max-height: 70vh;
+                overflow-y: scroll;
+                scrollbar-width: none;
+            }
+
+            .appointments .appointment {
+                margin: 1px 5px;
+                padding: 7px 3px;
+                width: 400px;
+                max-width: calc(100% - 10px);
+                display: flex;
+                justify-content: space-between;
+                cursor: pointer;
+            }
+
+            .appointments .appointment .span2 {
+                padding: 2px;
+                border-radius: 4px;
+                box-shadow: 0 0 2px white;
+            }
+
+            .clear-appointments {
+                margin: 3px;
+                background-color: black;
+                color: orange;
+                border-radius: 3px;
+                padding: 3px;
+                border: none;
+                font-size: large;
+                cursor: pointer;
+            }
+
+            .previewDiv .preview {
+                position: absolute;
+                top: 0;
+                height: 100vh;
+                width: 100vw;
+                background-color: rgba(0, 0, 0, .3);
+                display: flex;
+                justify-content: center;
+            }
+
+            .previewDiv .preview .div {
+                background-color: white;
+                padding: 5px;
+                border-radius: 4px;
+                margin-top: 50px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                flex-direction: column;
+                height: fit-content;
+                animation:slide-bottom2 .3s;
+            }
+
+            .previewDiv .preview p, .previewDiv .preview .btnDiv{
+                margin: 5px 0;
+            }
+
+            .previewDiv .preview button {
+                padding: 4px;
+                border: none;
+                border-radius: 4px;
+                box-shadow: 0 0 2px black;
+                margin: 4px;
+                background-color: white;
+                cursor: pointer;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>cliniCure.</h1>
+        <script type="script" src="/socket.io/socket.io.js"></script>
+    </header>
+    <div class="admin">
+        <h2>Admin section</h2>
+        <nav>
+            <div id="admin-name"></div> <button onclick="logout()">Logout</button>
+        </nav>
+        <div class="container">
+            <h3>Users</h3>
+            <div class="users" id="users">
+
+            </div>
+            <h3>Appointments</h3>
+            <button class="clear-appointments" onclick="removeCompleted()">Clear all completed appointments
+                history</button>
+            <div class="appointments" id="appointments">
+
+            </div>
+            <div class="previewDiv" id="previewDiv">
+
+            </div>
+        </div>
+    </div>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.9.0/axios.min.js"></script>
+    <script>
+        const admin = JSON.parse(localStorage.getItem('admin'));
+        const usersDiv = document.getElementById('users');
+        const appointmentsDiv = document.getElementById('appointments');
+        const previewDiv = document.getElementById('previewDiv');
+
+        function logout(){
+            const isTrue=confirm('Are you sure?');
+            if(isTrue){
+                localStorage.clear();
+                location.replace('/');
+            }
+        }
+
+        function removeCompleted() {
+            const isTrue = confirm('Are you sure?');
+            if (isTrue) {
+                axios.delete('remove-completed').then(data => {
+                    appointmentsDiv.innerHTML = ''
+                    viewAppointments(data)
+                }).catch(e => alert(e))
+            }
+        }
+        function removeUser(email) {
+            const isTrue = confirm('Are you sure to delete?');
+            if (isTrue) {
+                axios.delete('delete-user/' + email).then(data => {
+                    viewUsers(data);
+                }).catch(e => alert(e));
+            }
+            else{
+                previewDiv.innerHTML=''
+            }
+        }
+        function clearPreview() {
+            previewDiv.innerHTML = ''
+        }
+
+        function viewUsers(data) {
+            const users = data.data || [];
+            users.map(a => {
+                const div = document.createElement('div');
+                div.addEventListener('click', () => {
+                    previewDiv.innerHTML = `<div class="preview">
+                <div class='div'>
+                    <h3>${a.name}</h3>
+                <p class="email">${a.email}</p>
+                <p class="des">(${a.des})</p>
+                <div class="btnDiv">
+                    <button onclick="clearPreview()">Ok</button>
+                    <button onclick='removeUser("${a.email}")'>Delete user</button>
+                </div>
+                </div>
+            </div>`;
+
+                })
+                div.classList.add('user');
+                div.innerHTML = `<span class='span1'>${a.name}</span><span class='span2'>${a.des}</span>`;
+                usersDiv.appendChild(div);
+                if (a.des == 'doctor') {
+                    div.style.backgroundColor = 'green';
+                    div.style.color = 'white';
+                }
+                else {
+                    div.style.backgroundColor = 'white';
+                }
+            })
+        }
+        function viewAppointments(data) {
+            const appointments = data.data || [];
+            appointments.map(a => {
+                const div = document.createElement('div');
+                div.innerHTML = `<span>${a.name}</span><span class='span2'>${a.status}</span>`;
+                div.classList.add('appointment');
+                div.addEventListener('click', () => {
+                    previewDiv.innerHTML = `<div class="preview">
+                <div class='div'>
+                    <h3>${a.name}</h3>
+                <p class="id">ID: ${a.id}</p>
+                <p class="email">Age: ${a.age}</p>
+                <p class="des">Gender: ${a.gender}</p>
+                <p class="time">Time: ${a.time}</p>
+                <p class="fees">Fees: ${a.fees || 'not calculated'}</p>
+                <p class="status">Status: ${a.status}</p>
+                <div class="btn">
+                    <button onclick="clearPreview()">Ok</button>
+                </div>
+                </div>
+            </div>`;
+                })
+                appointmentsDiv.appendChild(div);
+                if (a.status == 'pending') {
+                    div.style.backgroundColor = 'black';
+                    div.style.color = 'white';
+                }
+                else if (a.status == 'check-up done') {
+                    div.style.backgroundColor = 'orange';
+                }
+                else if (a.status == 'completed') {
+                    div.style.backgroundColor = 'green';
+                    div.style.color = 'white';
+                }
+            })
+        }
+
+        usersDiv.innerHTML = '';
+        appointmentsDiv.innerHTML = '';
+        if (admin) {
+            document.getElementById('admin-name').innerText = admin.name;
+        } else { location.replace('/admin') }
+
+        axios.get('/users').then((data) => {
+            viewUsers(data)
+        }).catch(e => alert(e));
+
+        axios.get('/tokens').then((data) => {
+            viewAppointments(data)
+        }).catch(e => alert(e));
+
+    </script>
+
+</body>
+
+</html>
+<!--Thank You-->
